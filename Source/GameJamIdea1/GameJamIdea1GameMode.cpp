@@ -19,12 +19,10 @@ void AGameJamIdea1GameMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	UE_LOG(LogTemp, Warning, TEXT("SECONd"));
 	if (bIsInterping)
 	{
 		float amount = FMath::FInterpTo(UGameplayStatics::GetGlobalTimeDilation(this), TargetGlobalTimeDilation, DeltaTime, 10.f);
 		UGameplayStatics::SetGlobalTimeDilation(this, amount);
-		UE_LOG(LogTemp, Warning, TEXT("FIRST"));
 		if (FMath::IsNearlyEqual(amount, TargetGlobalTimeDilation, .0001f))
 		{
 			bIsInterping = false;

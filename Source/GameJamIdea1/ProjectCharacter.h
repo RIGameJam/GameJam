@@ -9,6 +9,7 @@
 #include "GameplayEffect.h"
 #include "AbilityTypes.h"
 #include "TaggedActor.h"
+#include "Containers/CircularBuffer.h"
 
 #include "ProjectCharacter.generated.h"
 
@@ -40,9 +41,25 @@ public:
 
 	virtual void PossessedBy(AController* NewController) override;
 
+	UPROPERTY(BlueprintReadWrite)
+	AActor* LastDamagedBy;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UDamageIndicatorComponent> DICClass;
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FTransform> BufferArr;
+
+	UPROPERTY(BlueprintReadOnly)
+	FTimerHandle TimerHandle;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bRecordSelf = false;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UAbilitySystemComponent *SystemComp = nullptr;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ProjectCharacter")
@@ -74,4 +91,8 @@ private:
 	UFUNCTION()
 	void OnMainAttributeChanged(EAttributeType Type, float CurrentAttributeValue);
 	void SetTeamIDByControllerType();
+
+	void OnRecord();
+
+	void ShiftDown(FTransform ValueToSet);
 };
