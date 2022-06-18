@@ -13,6 +13,25 @@
 
 #include "ProjectCharacter.generated.h"
 
+USTRUCT(BlueprintType) 
+struct FRewindInformation {
+	GENERATED_BODY()
+
+	FRewindInformation() {
+		TransformArr = TArray<FTransform>();
+		VectorArr = TArray<FVector>();
+	}
+	FRewindInformation(TArray<FTransform> TArr, TArray<FVector> VArr) {
+		TransformArr = TArr;
+		VectorArr = VArr;
+	}
+
+	UPROPERTY(BlueprintReadWrite)
+	TArray<FTransform> TransformArr;
+	UPROPERTY(BlueprintReadWrite)
+	TArray<FVector> VectorArr;
+};
+
 UCLASS()
 class GAMEJAMIDEA1_API AProjectCharacter : public ACharacter, public IAbilitySystemInterface, public ITaggedActor
 {
@@ -48,10 +67,71 @@ public:
 	TSubclassOf<class UDamageIndicatorComponent> DICClass;
 
 	UPROPERTY(BlueprintReadOnly)
-	TArray<FTransform> BufferArr;
+	TArray<FTransform> TransformBufferArr;
+	UPROPERTY(EditDefaultsOnly)
+	int32 TBACapacity = 7;
+	UPROPERTY(BlueprintReadOnly)
+	int32 CurTBAIndex = -1;
+
+	UPROPERTY(BlueprintReadWrite)
+	int32 CurTimeIndex = 0;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 MaxTime = 200;
+
+	UFUNCTION(BlueprintCallable)
+	void ResetTime();
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FVector> VelocityBufferArr;
+	UPROPERTY(EditDefaultsOnly)
+	int32 VBACapacity = 7;
+	UPROPERTY(BlueprintReadOnly)
+	int32 CurVBAIndex = -1;
+
+		UPROPERTY(BlueprintReadOnly)
+	TArray<float> FloatBufferArr;
+	int32 CurFBAIndex = 0;
+	int32 FBACapacity = 7;
+	int32 CurNumber = 0;
 
 	UPROPERTY(BlueprintReadOnly)
 	FTimerHandle TimerHandle;
+
+	template<class T>
+	T Retrieve(const TArray<T>& ArrayToModify, int32& index);
+
+	UFUNCTION(BlueprintCallable)
+	FTransform RetrieveTransform(); // This is here because blueprints cannot call templated functions
+	UFUNCTION(BlueprintCallable)
+	FVector RetrieveVelocity(); // This is here because blueprints cannot call templated functions
+
+	UFUNCTION(BlueprintCallable)
+	void AdvanceTime();
+	UFUNCTION(BlueprintCallable)
+	void ReverseTime();
+
+	UFUNCTION(BlueprintCallable)
+	void SaveCurValues();
+
+
+	TArray<TArray<FTransform>> TransformsArr;
+	TArray<TArray<FVector>> VelocitiesArr;
+	
+	// TMap<TArray<FTransform>, TArray<FVector>> TVMap;
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FRewindInformation> InfoArr;
+
+	UFUNCTION(BlueprintCallable)
+	void PauseRecording();
+	UFUNCTION(BlueprintCallable)
+	void ResetRecordingAndTime();
+
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsRewinding = false;
+
+	// FTransform Retrieve(const TArray<FTransform>& ArrayToModify);
+	// FVector Retrieve(const TArray<FVector>& ArrayToModify);
 
 protected:
 	// Called when the game starts or when spawned
@@ -92,7 +172,15 @@ private:
 	void OnMainAttributeChanged(EAttributeType Type, float CurrentAttributeValue);
 	void SetTeamIDByControllerType();
 
+	UFUNCTION()
 	void OnRecord();
 
-	void ShiftDown(FTransform ValueToSet);
+
+	void ShiftDown(FTransform TransformToSet, FVector VectorToSet);
+	void ShiftDownTransform(FTransform TransformToSet);
+	void ShiftDownVelocity(FVector VectorToSet);
+	void ShiftDownFloat(float ValueToSet);
+	
+	template<class T>
+	void ShiftDown(const TArray<T>& ArrayToModify, T ValueToSet, int32& index);
 };

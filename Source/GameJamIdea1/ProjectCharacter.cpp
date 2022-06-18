@@ -35,12 +35,17 @@ void AProjectCharacter::BeginPlay() {
     AttributeSetBase->OnManaChanged.AddDynamic(this, &AProjectCharacter::OnManaChanged);
     AttributeSetBase->OnMainAttributeChanged.AddDynamic(this, &AProjectCharacter::OnMainAttributeChanged);
   }
+  
   bIsDead = false;
 
   if (bRecordSelf) {
     // BufferArr = TArray<float>({5.f, 3.f, 7.f});
     // UE_LOG(LogTemp, Warning, TEXT(Buffer.Capacity()));
-    GetWorld() -> GetTimerManager().SetTimer(TimerHandle, this, &AProjectCharacter::OnRecord, 1.f, true);
+    FloatBufferArr = TArray<float>();
+    // FloatBufferArr.Init(-1.f, 7);
+    // VelocityBufferArr = TArray<FVector(-99.f, -99.f, -99.f)
+    ShiftDown(GetActorTransform(), GetVelocity());
+    GetWorld() -> GetTimerManager().SetTimer(TimerHandle, this, &AProjectCharacter::OnRecord, .025f, true);
   }
 }
 
@@ -89,6 +94,213 @@ void AProjectCharacter::PossessedBy(AController* NewController) {
   Super::PossessedBy(NewController);
   SetTeamIDByControllerType();
 }
+
+void AProjectCharacter::ResetTime() 
+{
+  CurTimeIndex = 0;
+  TransformBufferArr.Reset(MaxTime + 1);
+  VelocityBufferArr.Reset(MaxTime + 1);
+}
+
+template<class T>
+T AProjectCharacter::Retrieve(const TArray<T>& ArrayToModify, int32& index) 
+{
+  int32 Num = ArrayToModify.Num();
+  if (index - 1 < 0) {
+    index = Num - 1;
+  }
+  else if (index == Num) {
+    index = Num - 1;
+  }
+  else {
+    index --;
+  }
+  T Value = ArrayToModify[index];
+  ArrayToModify.RemoveAt(index);
+  return Value;
+}
+
+// FTransform AProjectCharacter::Retrieve(const TArray<FTransform>& ArrayToModify) 
+// {
+//   int32 Num = ArrayToModify.Num();
+//   if (CurTBAIndex - 1 < 0) {
+//     CurTBAIndex = Num - 1;
+//   }
+//   else {
+//     CurTBAIndex --;
+//   }
+//   FTransform Value = ArrayToModify[CurTBAIndex];
+//   ArrayToModify.RemoveAt(CurTBAIndex);
+//   return Value;
+// }
+
+// FVector AProjectCharacter::Retrieve(const TArray<FVector>& ArrayToModify) 
+// {
+//   int32 Num = ArrayToModify.Num();
+//   if (CurVBAIndex - 1 < 0) {
+//     CurVBAIndex = Num - 1;
+//   }
+//   else {
+//     CurVBAIndex --;
+//   }
+//   FVector Value = ArrayToModify[CurVBAIndex];
+//   ArrayToModify.RemoveAt(CurVBAIndex);
+//   return Value;
+// }
+
+FTransform AProjectCharacter::RetrieveTransform() 
+{
+  // return Retrieve(TransformBufferArr, CurTBAIndex);
+  // TArray<FTransform>& ArrayToModify = TransformBufferArr;
+  // int32& index = CurTimeIndex;
+  // int32 Num = ArrayToModify.Num();
+  // if (ensure(index >= 0 && index < Num)) {
+  //   FTransform Value = ArrayToModify[index];
+  //   ArrayToModify.RemoveAt(index);
+  
+  //   if (index - 1 < 0) {
+  //     index = Num - 1;
+  //   }
+  //   else if (index == Num) {
+  //     index = Num - 1;
+  //   }
+  //   else {
+  //     index --;
+  //   }
+  //   return Value;
+  // }
+  // else {
+  //   UE_LOG(LogTemp, Warning, TEXT("RABBITDUCK index is %i, num is %i"), index, Num);
+  //   if (index - 1 < 0) {
+  //     index = Num - 1;
+  //   }
+  //   else if (index == Num) {
+  //     index = Num - 1;
+  //   }
+  //   else {
+  //     index --;
+  //   }
+  // }
+  
+  // return FTransform(FVector(0));
+  int32 Num = TransformBufferArr.Num();
+  if (ensure(CurTimeIndex >= 0 && CurTimeIndex < Num)) {
+    FTransform Value = TransformBufferArr[CurTimeIndex];
+    return Value;
+  }
+  else if (Num > 0) {
+    FTransform Value = TransformBufferArr[Num - 1];
+    UE_LOG(LogTemp, Warning, TEXT("RED FLAG"));
+    if (ensure(false)) {
+
+    }
+  }
+  return FTransform(FVector(0));
+}
+
+FVector AProjectCharacter::RetrieveVelocity() 
+{
+  // return Retrieve(VelocityBufferArr, CurVBAIndex);
+  // TArray<FVector>& ArrayToModify = VelocityBufferArr;
+  // int32& index = CurTimeIndex;
+  // int32 Num = ArrayToModify.Num();
+  // if (ensure(index >= 0 && index < Num)) {
+  //   FVector Value = ArrayToModify[index];
+  //   ArrayToModify.RemaoveAt(index);
+  //   return Value;
+  
+  //   if (index - 1 < 0) {
+  //     index = Num - 1;
+  //   }
+  //   else if (index == Num) {
+  //     index = Num - 1;
+  //   }
+  //   else {
+  //     index --;
+  //   }
+  //   return Value;
+  // }
+  
+  // return FVector(0);
+
+  int32 Num = VelocityBufferArr.Num();
+  if (ensure(CurTimeIndex >= 0 && CurTimeIndex < Num)) {
+    FVector Value = VelocityBufferArr[CurTimeIndex];
+    return Value;
+  }
+  else if (Num > 0) {
+    FVector Value = VelocityBufferArr[Num - 1];
+    UE_LOG(LogTemp, Warning, TEXT("RED FLAG"));
+    if (ensure(false)) {
+
+    }
+  }
+  return FVector(0);
+}
+
+void AProjectCharacter::AdvanceTime() 
+{
+  if (CurTimeIndex + 1 > MaxTime) {
+    CurTimeIndex = 0;
+  }
+  else {
+    CurTimeIndex++;
+  }
+}
+
+void AProjectCharacter::ReverseTime() 
+{
+  if (CurTimeIndex - 1 < 0) {
+    CurTimeIndex = MaxTime;
+  }
+  else if (CurTimeIndex > MaxTime) {
+    CurTimeIndex = MaxTime;
+    if (ensure(false)) {
+    }
+  }
+  else {
+    CurTimeIndex--;
+  }
+}
+
+void AProjectCharacter::SaveCurValues() 
+{
+  FTransform CurTransform = TransformBufferArr[CurTimeIndex];
+  for (int i = 0; i < (TransformBufferArr.Num() - 1) - CurTimeIndex; i++) {
+    for (int32 Index = TransformBufferArr.Num() - 1; Index > 0; Index--) {
+      TransformBufferArr[Index] = TransformBufferArr[Index - 1];
+    }
+    TransformBufferArr[0] = TransformBufferArr[TransformBufferArr.Num() - 1];
+  }
+  FVector CurVelocity = VelocityBufferArr[CurTimeIndex];
+  for (int i = 0; i < (TransformBufferArr.Num() - 1) - CurTimeIndex; i++) {
+    for (int32 Index = VelocityBufferArr.Num() - 1; Index > 0; Index--) {
+      VelocityBufferArr[Index] = VelocityBufferArr[Index - 1];
+    }
+    VelocityBufferArr[0] = VelocityBufferArr[VelocityBufferArr.Num() - 1];
+  }
+  int32 TIndex = TransformsArr.Add(TransformBufferArr);
+  int32 VIndex = VelocitiesArr.Add(VelocityBufferArr);
+
+  if (!ensure(TIndex == VIndex)) {
+  }
+  FRewindInformation Info(TransformBufferArr, VelocityBufferArr);
+  InfoArr.Add(Info);
+
+}
+
+void AProjectCharacter::PauseRecording() 
+{
+  GetWorldTimerManager().PauseTimer(TimerHandle);
+}
+
+void AProjectCharacter::ResetRecordingAndTime() 
+{
+  ResetTime();
+  ShiftDown(GetActorTransform(), GetVelocity());
+  GetWorldTimerManager().UnPauseTimer(TimerHandle);
+}
+
 
 void AProjectCharacter::MoveForward(float Value) {
   if (Value == 0 || !ensure(GetController()))
@@ -153,20 +365,137 @@ void AProjectCharacter::SetTeamIDByControllerType() {
 }
 
 void AProjectCharacter::OnRecord() {
-  if (BufferArr.Num() >= 6) {
-    ShiftDown(GetActorTransform());
-  } else {
-    BufferArr.Add(GetActorTransform());
-  }
-  // for (int32 i = 0; i < BufferArr.Num(); i++) {
-  //   UE_LOG(LogTemp, Warning, TEXT("The array is: %f"), BufferArr[i]);
+  // if (BufferArr.Num() >= 100) {
+  //   ShiftDown(GetActorTransform());
+  // } else {
+  //   TransformBufferArr.Add(GetActorTransform());
+  //   VelocityBufferArr.Add(GetVelocity());
   // }
+
+  // ShiftDownFloat(FMath::Rand());
+  AdvanceTime();
+  ShiftDown(GetActorTransform(), GetVelocity());
+  for (int32 i = 0; i < FloatBufferArr.Num(); i++) {
+    UE_LOG(LogTemp, Warning, TEXT("The array is: %f"), FloatBufferArr[i]);
+  }
+  UE_LOG(LogTemp, Warning, TEXT("__________"));
   // CircularBuffer
 }
 
-void AProjectCharacter::ShiftDown(FTransform ValueToSet) {
-  for (int32 Index = BufferArr.Num() - 1; Index > 0; Index--) {
-    BufferArr[Index] = BufferArr[Index - 1];
+
+void AProjectCharacter::ShiftDown(FTransform TransformToSet, FVector VectorToSet) {
+  // for (int32 Index = TransformBufferArr.Num() - 1; Index > 0; Index--) {
+  //   TransformBufferArr[Index] = TransformBufferArr[Index - 1];
+  // }
+  // TransformBufferArr[0] = ValueToSet;
+
+  // int32 num = VelocityBufferArr.Num() - 1 <= 100 ? VelocityBufferArr.Num() : 99;
+  // for (int32 Index = VelocityBufferArr.Num() - 1; Index > 0; Index--) {
+  //   VelocityBufferArr[Index] = VelocityBufferArr[Index - 1];
+  // }
+  // VelocityBufferArr[0] = VectorToSet;
+
+  ShiftDownTransform(TransformToSet);
+  ShiftDownVelocity(VectorToSet);
+
+
+  
+}
+
+void AProjectCharacter::ShiftDownFloat(float ValueToSet) {
+  int32 Range = FloatBufferArr.Num();
+  if (Range < FBACapacity) {
+    FloatBufferArr.Add(CurNumber);
+    CurNumber++;
+    return;
   }
-  BufferArr[0] = ValueToSet;
+  if (ensure(CurFBAIndex < Range && CurFBAIndex >= 0)) {
+    FloatBufferArr[CurFBAIndex] = CurNumber;
+    CurNumber++;
+    UE_LOG(LogTemp, Warning, TEXT("The index is: %f"), CurFBAIndex);
+  }
+  if (CurFBAIndex + 1 >= Range) {
+    CurFBAIndex = 0;
+  }
+  else {
+    CurFBAIndex++;
+  }
+  
+
+  // for (int32 Index = FloatBufferArr.Num() - 1; Index > 0; Index--) {
+  //   FloatBufferArr[Index] = FloatBufferArr[Index - 1];
+  // }
+  // FloatBufferArr[0] = ValueToSet;
+}
+
+// template<class T>
+// void AProjectCharacter::ShiftDown(const TArray<T>& ArrayToModify, T ValueToSet, int32& index) 
+// {
+//   int32 Range = FloatBufferArr.Num();
+//   if (Range < FBACapacity) {
+//     FloatBufferArr.Add(CurNumber);
+//     CurNumber++;
+//     return;
+//   }
+//   if (ensure(CurFBAIndex < Range && CurFBAIndex >= 0)) {
+//     FloatBufferArr[CurFBAIndex] = CurNumber;
+//     CurNumber++;
+//     UE_LOG(LogTemp, Warning, TEXT("The index is: %f"), CurFBAIndex);
+//   }
+//   if (CurFBAIndex + 1 >= Range) {
+//     CurFBAIndex = 0;
+//   }
+//   else {
+//     CurFBAIndex++;
+//   } 
+// }
+
+void AProjectCharacter::ShiftDownTransform(FTransform TransformToSet) 
+{
+  // int32 TNum = TransformBufferArr.Num();
+  // if (TNum < TBACapacity) {
+  //   int32 index = TransformBufferArr.Add(TransformToSet);
+  //   CurTBAIndex = index;
+  //   return;
+  // }
+  // if (CurTBAIndex + 1 >= TNum) {
+  //   CurTBAIndex = 0;
+  // }
+  // else {
+  //   CurTBAIndex++;
+  // }
+  // if (ensure(CurTBAIndex < TNum && CurTBAIndex >= 0)) {
+  //   TransformBufferArr[CurTimeIndex] = TransformToSet;
+  // }
+  if (CurTimeIndex >= TransformBufferArr.Num()) {
+    TransformBufferArr.Add(TransformToSet);
+  }
+  else if(ensure(CurTimeIndex < TransformBufferArr.Num() && CurTimeIndex >= 0)) {
+    TransformBufferArr[CurTimeIndex] = TransformToSet;
+  }
+}
+
+void AProjectCharacter::ShiftDownVelocity(FVector VectorToSet) 
+{
+  // int32 VNum = VelocityBufferArr.Num();
+  // if (VNum < VBACapacity) {
+  //   int32 index = VelocityBufferArr.Add(VectorToSet);
+  //   CurVBAIndex = index;
+  //   return;
+  // }
+  // if (CurVBAIndex + 1 >= VNum) {
+  //   CurVBAIndex = 0;
+  // }
+  // else {
+  //   CurVBAIndex++;
+  // }
+  // if (ensure(CurVBAIndex < VNum && CurVBAIndex >= 0)) {
+  //   VelocityBufferArr[CurVBAIndex] = VectorToSet;
+  // }
+  if (CurTimeIndex >= VelocityBufferArr.Num()) {
+    VelocityBufferArr.Add(VectorToSet);
+  }
+  else if(ensure(CurTimeIndex < VelocityBufferArr.Num() && CurTimeIndex >= 0)) {
+    VelocityBufferArr[CurTimeIndex] = VectorToSet;
+  }
 }
