@@ -74,6 +74,22 @@ void AProjectCharacter::AcquireAbilities(TArray<TSubclassOf<UGameplayAbility>> A
   }
 }
 
+void AProjectCharacter::AddGameplayTag(const FGameplayTag& Tag) 
+{
+	GetAbilitySystemComponent() -> AddLooseGameplayTag(Tag);
+	GetAbilitySystemComponent() -> SetTagMapCount(Tag, 1);
+}
+
+void AProjectCharacter::RemoveGameplayTag(const FGameplayTag& Tag) 
+{
+	GetAbilitySystemComponent() -> RemoveLooseGameplayTag(Tag);
+}
+
+void AProjectCharacter::CancelAbilities(const FGameplayTagContainer& WithTags, const FGameplayTagContainer& WithoutTags, UGameplayAbility* Ignore) 
+{
+  GetAbilitySystemComponent() -> CancelAbilities(&WithTags, &WithoutTags, Ignore);
+}
+
 // Called to bind functionality to input
 void AProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
   Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -186,10 +202,12 @@ FTransform AProjectCharacter::RetrieveTransform()
   int32 Num = TransformBufferArr.Num();
   if (ensure(CurTimeIndex >= 0 && CurTimeIndex < Num)) {
     FTransform Value = TransformBufferArr[CurTimeIndex];
+    Tindex = CurTimeIndex;
     return Value;
   }
   else if (Num > 0) {
     FTransform Value = TransformBufferArr[Num - 1];
+    Tindex = Num - 1;
     UE_LOG(LogTemp, Warning, TEXT("RED FLAG"));
     if (ensure(false)) {
 
@@ -265,26 +283,29 @@ void AProjectCharacter::ReverseTime()
 
 void AProjectCharacter::SaveCurValues() 
 {
-  FTransform CurTransform = TransformBufferArr[CurTimeIndex];
-  for (int i = 0; i < (TransformBufferArr.Num() - 1) - CurTimeIndex; i++) {
-    for (int32 Index = TransformBufferArr.Num() - 1; Index > 0; Index--) {
-      TransformBufferArr[Index] = TransformBufferArr[Index - 1];
+  TArray<FTransform> TransformBufferArrC(TransformBufferArr);
+  TArray<FVector> VelocityBufferArrC(VelocityBufferArr);
+
+  FTransform CurTransform = TransformBufferArrC[CurTimeIndex];
+  for (int i = 0; i < (TransformBufferArrC.Num() - 1) - CurTimeIndex; i++) {
+    for (int32 Index = TransformBufferArrC.Num() - 1; Index > 0; Index--) {
+      TransformBufferArrC[Index] = TransformBufferArrC[Index - 1];
     }
-    TransformBufferArr[0] = TransformBufferArr[TransformBufferArr.Num() - 1];
+    TransformBufferArrC[0] = TransformBufferArrC[TransformBufferArrC.Num() - 1];
   }
-  FVector CurVelocity = VelocityBufferArr[CurTimeIndex];
-  for (int i = 0; i < (TransformBufferArr.Num() - 1) - CurTimeIndex; i++) {
-    for (int32 Index = VelocityBufferArr.Num() - 1; Index > 0; Index--) {
-      VelocityBufferArr[Index] = VelocityBufferArr[Index - 1];
+  FVector CurVelocity = VelocityBufferArrC[CurTimeIndex];
+  for (int i = 0; i < (TransformBufferArrC.Num() - 1) - CurTimeIndex; i++) {
+    for (int32 Index = VelocityBufferArrC.Num() - 1; Index > 0; Index--) {
+      VelocityBufferArrC[Index] = VelocityBufferArrC[Index - 1];
     }
-    VelocityBufferArr[0] = VelocityBufferArr[VelocityBufferArr.Num() - 1];
+    VelocityBufferArrC[0] = VelocityBufferArrC[VelocityBufferArrC.Num() - 1];
   }
-  int32 TIndex = TransformsArr.Add(TransformBufferArr);
-  int32 VIndex = VelocitiesArr.Add(VelocityBufferArr);
+  int32 TIndex = TransformsArr.Add(TransformBufferArrC);
+  int32 VIndex = VelocitiesArr.Add(VelocityBufferArrC);
 
   if (!ensure(TIndex == VIndex)) {
   }
-  FRewindInformation Info(TransformBufferArr, VelocityBufferArr);
+  FRewindInformation Info(TransformBufferArrC, VelocityBufferArrC);
   InfoArr.Add(Info);
 
 }
@@ -375,10 +396,6 @@ void AProjectCharacter::OnRecord() {
   // ShiftDownFloat(FMath::Rand());
   AdvanceTime();
   ShiftDown(GetActorTransform(), GetVelocity());
-  for (int32 i = 0; i < FloatBufferArr.Num(); i++) {
-    UE_LOG(LogTemp, Warning, TEXT("The array is: %f"), FloatBufferArr[i]);
-  }
-  UE_LOG(LogTemp, Warning, TEXT("__________"));
   // CircularBuffer
 }
 
@@ -468,10 +485,11 @@ void AProjectCharacter::ShiftDownTransform(FTransform TransformToSet)
   //   TransformBufferArr[CurTimeIndex] = TransformToSet;
   // }
   if (CurTimeIndex >= TransformBufferArr.Num()) {
-    TransformBufferArr.Add(TransformToSet);
+     Tindex = TransformBufferArr.Add(TransformToSet);
   }
   else if(ensure(CurTimeIndex < TransformBufferArr.Num() && CurTimeIndex >= 0)) {
     TransformBufferArr[CurTimeIndex] = TransformToSet;
+    Tindex = CurTimeIndex;
   }
 }
 

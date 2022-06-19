@@ -130,6 +130,12 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsRewinding = false;
 
+	UPROPERTY(BlueprintReadOnly)
+	int32 Tindex = -1;
+
+	UPROPERTY(EditDefaultsOnly)
+	FName HeadBoneName;
+
 	// FTransform Retrieve(const TArray<FTransform>& ArrayToModify);
 	// FVector Retrieve(const TArray<FVector>& ArrayToModify);
 
@@ -149,6 +155,13 @@ protected:
 	void AcquireAbility(TSubclassOf<class UGameplayAbility> AbilityToAcquire);
 	UFUNCTION(BlueprintCallable)
 	void AcquireAbilities(TArray<TSubclassOf<class UGameplayAbility>> AbilitiesToAcquire);
+
+	UFUNCTION(BlueprintCallable)
+	void AddGameplayTag(const struct FGameplayTag& Tag);
+	UFUNCTION(BlueprintCallable)
+	void RemoveGameplayTag(const FGameplayTag& Tag);
+	UFUNCTION(BlueprintCallable)
+	void CancelAbilities(const FGameplayTagContainer& WithTags, const FGameplayTagContainer& WithoutTags, class UGameplayAbility* Ignore=nullptr);
 
 	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnHealthChanged"))
 	void BP_OnHealthChanged(float Health, float MaxHealth, bool FullHealth, float PreviousHealth, AActor *EffectInstigator);
