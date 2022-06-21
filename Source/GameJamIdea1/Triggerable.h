@@ -7,7 +7,7 @@
 #include "Triggerable.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
+UINTERFACE(MinimalAPI, meta = (CannotImplementInterfaceInBlueprint))
 class UTriggerable : public UInterface
 {
 	GENERATED_BODY()
@@ -22,9 +22,16 @@ class GAMEJAMIDEA1_API ITriggerable
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void Trigger(AActor* Trigger);
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void UnTrigger(AActor* Trigger);
+	UFUNCTION(BlueprintCallable)
+	virtual bool Trigger(AActor* Trigger);
+	UFUNCTION(BlueprintCallable)
+	virtual bool UnTrigger(AActor* Trigger);
+
+	UFUNCTION(BlueprintCallable)
+	virtual void MarkDirty() = 0;
+
+	// UFUNCTION(BlueprintCallable)
+	virtual TArray<AActor*>& GetUniqueTriggers() = 0;
+	virtual int32& GetNumberOfTriggersRequired() = 0;
 
 };
