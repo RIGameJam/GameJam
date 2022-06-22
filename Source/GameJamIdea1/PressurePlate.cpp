@@ -39,13 +39,18 @@ void APressurePlate::BeginPlay()
 
 	CollisionComp -> OnComponentBeginOverlap.AddDynamic(this, &APressurePlate::OnBoxBeginOverlap);
 	CollisionComp -> OnComponentEndOverlap.AddDynamic(this, &APressurePlate::OnBoxEndOverlap);
-	CheckForActorsAlreadyOnPlate();
-
-	MarkDirty();
 
 	if (bVanishing && bChangeScale) {
+		bTriggered = false;
+		AfterDelay();
 		Mesh -> SetRelativeScale3D(FVector(2.f, 2.f, Mesh -> GetRelativeScale3D().Z));
+		CollisionComp -> SetRelativeScale3D(FVector(2.f, 2.f, Mesh -> GetRelativeScale3D().Z));
 	}
+	else {
+		MarkDirty();
+	}
+
+	CheckForActorsAlreadyOnPlate();
 	
 }
 

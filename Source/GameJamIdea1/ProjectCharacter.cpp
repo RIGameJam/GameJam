@@ -396,6 +396,7 @@ void AProjectCharacter::OnRecord() {
   // ShiftDownFloat(FMath::Rand());
   AdvanceTime();
   ShiftDown(GetActorTransform(), GetVelocity());
+  CheckTime();
   // CircularBuffer
 }
 

@@ -27,7 +27,7 @@ void AVanishingBlock::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ChangeVanishStatus(false);
+	if (GetNumberOfTriggersRequired() > 0) ChangeVanishStatus(false);
 	
 }
 
@@ -70,7 +70,14 @@ void AVanishingBlock::MarkDirty()
 	}
 	else {
 		bTriggered = false;
-		GetWorldTimerManager().SetTimer(TimerHandle, this, &AVanishingBlock::AfterDelay, .5f, false);
+		bool bIsRewinding;
+		GetIsRewinding(bIsRewinding);
+		if (bIsRewinding) {
+			AfterDelay();
+		}
+		else {
+			GetWorldTimerManager().SetTimer(TimerHandle, this, &AVanishingBlock::AfterDelay, .5f, false);
+		}
 	}
 }
 

@@ -110,6 +110,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ReverseTime();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void CheckTime();
+
 	UFUNCTION(BlueprintCallable)
 	void SaveCurValues();
 
@@ -135,6 +138,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	FName HeadBoneName;
+
 
 	// FTransform Retrieve(const TArray<FTransform>& ArrayToModify);
 	// FVector Retrieve(const TArray<FVector>& ArrayToModify);
