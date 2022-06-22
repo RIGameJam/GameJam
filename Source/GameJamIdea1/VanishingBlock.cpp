@@ -50,6 +50,7 @@ int32& AVanishingBlock::GetNumberOfTriggersRequired()
 
 void AVanishingBlock::ChangeVanishStatus_Implementation(bool bVisible) 
 {
+	if (bReverseVisibility) bVisible = !bVisible;
 	Mesh -> SetVisibility(bVisible, true);
 	Mesh -> SetCollisionEnabled(bVisible ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
 }

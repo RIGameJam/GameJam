@@ -51,6 +51,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	int32 NumberOfTriggersReq;
 
+	UPROPERTY(EditAnywhere)
+	bool bReverseVisibility = false;
+
 private:
 	FTimerHandle TimerHandle;
 

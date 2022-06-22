@@ -286,6 +286,8 @@ void AProjectCharacter::SaveCurValues()
   TArray<FTransform> TransformBufferArrC(TransformBufferArr);
   TArray<FVector> VelocityBufferArrC(VelocityBufferArr);
 
+  if (TransformBufferArr.Num() <= 0 || VelocityBufferArr.Num() <= 0) return;
+
   FTransform CurTransform = TransformBufferArrC[CurTimeIndex];
   for (int i = 0; i < (TransformBufferArrC.Num() - 1) - CurTimeIndex; i++) {
     for (int32 Index = TransformBufferArrC.Num() - 1; Index > 0; Index--) {
