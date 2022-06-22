@@ -27,6 +27,11 @@ AIceFillBlock::AIceFillBlock()
 
 }
 
+void AIceFillBlock::Freeze() 
+{
+	bFreeze = true;
+}
+
 // Called when the game starts or when spawned
 void AIceFillBlock::BeginPlay()
 {
@@ -34,12 +39,15 @@ void AIceFillBlock::BeginPlay()
 
 	DynMat = Mesh -> CreateAndSetMaterialInstanceDynamicFromMaterial(0, Mat);
 
-	CollisionComp -> OnComponentBeginOverlap.AddDynamic(this, &APressurePlate::OnBoxBeginOverlap);
-	CollisionComp -> OnComponentEndOverlap.AddDynamic(this, &APressurePlate::OnBoxEndOverlap);
-
+	CollisionComp -> OnComponentBeginOverlap.AddDynamic(this, &AIceFillBlock::OnBoxBeginOverlap);
+	CollisionComp -> OnComponentEndOverlap.AddDynamic(this, &AIceFillBlock::OnBoxEndOverlap);
+	
+	bFreeze = false;
 
 	CheckForActorsAlreadyOnPlate();
-	
+	ChangeStatus((uint8)EIFBStatus::NEUTRAL);
+	UE_LOG(LogTemp, Warning, TEXT("Neutral is %i"), (uint8)EIFBStatus::NEUTRAL);
+
 }
 
 
@@ -53,8 +61,6 @@ void AIceFillBlock::Tick(float DeltaTime)
 
 void AIceFillBlock::CheckForActorsAlreadyOnPlate() 
 {
-	void APressurePlate::CheckForActorsAlreadyOnPlate() 
-{
 	if (ensure(CharBaseClass)) {
 		TArray<AActor*> OverlappingActors;
 		CollisionComp -> GetOverlappingActors(OverlappingActors, CharBaseClass);
@@ -63,7 +69,92 @@ void AIceFillBlock::CheckForActorsAlreadyOnPlate()
 				ActorsOnPlate.AddUnique(OverlappingActor);
 			}
 		}
-		MarkPlateDirty();
+		MarkDirty();
 	}
 }
+
+void AIceFillBlock::OnTrigger() 
+{
+	bool bIsRewinding;
+	GetIsRewinding(bIsRewinding);
+	UE_LOG(LogTemp, Warning, TEXT("Rewinding, %i"), bIsRewinding)
+	if (bIsRewinding) {
+		DecrementStatus();
+	}
+	else {
+		IncrementStatus();
+	}
+}
+
+void AIceFillBlock::OnUnTrigger() 
+{
+}
+
+void AIceFillBlock::ChangeStatus(uint8 FinalStatusInt) 
+{
+	EIFBStatus FinalStatus = (EIFBStatus)FinalStatusInt;
+	switch(FinalStatus) {
+		case EIFBStatus::NEUTRAL:
+			SetDynColour(NeutralColour);
+			break;
+		case EIFBStatus::GOOD:
+			SetDynColour(GoodColour);
+			break;
+		case EIFBStatus::BAD:
+			SetDynColour(BadColour);
+			break;
+	}
+	Status = FinalStatus;
+	OnStatusChanged(FinalStatus);
+}
+
+void AIceFillBlock::IncrementStatus() 
+{
+	if (Status != EIFBStatus::BAD) {
+		ChangeStatus((uint8)Status + 1);
+	}
+}
+
+void AIceFillBlock::DecrementStatus() 
+{
+	if (Status != EIFBStatus::NEUTRAL) {
+		ChangeStatus((uint8)Status - 1);
+	}
+}
+
+void AIceFillBlock::SetDynColour(FLinearColor Colour) 
+{
+	if (!ensure(DynMat)) return;
+	DynMat -> SetVectorParameterValue(TEXT("Colour"), Colour);
+}
+
+void AIceFillBlock::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) 
+{
+	if (bFreeze) return;
+	if (!ActorsOnPlate.Contains(Other)) {
+		ActorsOnPlate.AddUnique(Other);
+		bool bIsRewinding;
+		GetIsRewinding(bIsRewinding);
+		if (!bIsRewinding) {
+			IncrementStatus();
+		}
+		UE_LOG(LogTemp, Warning, TEXT("It is %i"), (uint8)Status);
+	}
+}
+
+void AIceFillBlock::OnBoxEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) 
+{
+	if (bFreeze) return;
+	if (ActorsOnPlate.Contains(Other)) {
+		ActorsOnPlate.Remove(Other);
+		bool bIsRewinding;
+		GetIsRewinding(bIsRewinding);
+		if (bIsRewinding) {
+			DecrementStatus();
+		}
+	}
+}
+
+void AIceFillBlock::MarkDirty() 
+{
 }

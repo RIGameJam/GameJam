@@ -95,12 +95,14 @@ void APressurePlate::CheckForActorsAlreadyOnPlate()
 
 void APressurePlate::OnTrigger() 
 {
+	BP_OnTrigger();
 	if (!ensure(DynMat)) return;
-		DynMat -> SetVectorParameterValue(TEXT("Colour"), TriggeredColour);
+	DynMat -> SetVectorParameterValue(TEXT("Colour"), TriggeredColour);
 }
 
 void APressurePlate::OnUnTrigger() 
 {
+	BP_OnUnTrigger();
 	if (!ensure(DynMat)) return;
 	DynMat -> SetVectorParameterValue(TEXT("Colour"), UnTriggeredColour);
 }

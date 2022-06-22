@@ -69,6 +69,11 @@ protected:
 	void OnTrigger();
 	void OnUnTrigger();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_OnTrigger();
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_OnUnTrigger();
+
 	UFUNCTION()
 	void OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
