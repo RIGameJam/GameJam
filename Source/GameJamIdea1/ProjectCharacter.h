@@ -52,7 +52,7 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	class AGameJamIdea1GameMode *GameMode;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadWrite)
 	bool bIsDead = false;
 	
 	UFUNCTION(BlueprintCallable)
