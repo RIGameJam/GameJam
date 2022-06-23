@@ -54,6 +54,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	bool bReverseVisibility = false;
 
+	UPROPERTY(EditAnywhere)
+	bool bVanishWithDelay = true;
+
 private:
 	FTimerHandle TimerHandle;
 

@@ -59,6 +59,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	bool bChangeScale = true;
+	
+	UPROPERTY(EditAnywhere)
+	bool bVanishWithDelay = true;
 
 protected:
 	// Called when the game starts or when spawned

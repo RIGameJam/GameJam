@@ -77,7 +77,12 @@ void AVanishingBlock::MarkDirty()
 			AfterDelay();
 		}
 		else {
-			GetWorldTimerManager().SetTimer(TimerHandle, this, &AVanishingBlock::AfterDelay, .5f, false);
+			if (bVanishWithDelay) {
+				GetWorldTimerManager().SetTimer(TimerHandle, this, &AVanishingBlock::AfterDelay, .5f, false);
+			}
+			else {
+				AfterDelay();
+			}
 		}
 	}
 }

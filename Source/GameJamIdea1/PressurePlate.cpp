@@ -150,7 +150,12 @@ void APressurePlate::MarkDirty()
 		}
 		else {
 			bTriggered = false;
-			GetWorldTimerManager().SetTimer(TimerHandle, this, &APressurePlate::AfterDelay, .5f, false);
+			if (bVanishWithDelay) {
+				GetWorldTimerManager().SetTimer(TimerHandle, this, &APressurePlate::AfterDelay, .5f, false);
+			}
+			else {
+				AfterDelay();
+			}
 		}
 	}
 }
