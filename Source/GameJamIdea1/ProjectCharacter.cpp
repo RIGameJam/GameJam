@@ -281,25 +281,30 @@ void AProjectCharacter::ReverseTime()
   }
 }
 
-void AProjectCharacter::SaveCurValues() 
+bool AProjectCharacter::SaveCurValues() 
 {
   TArray<FTransform> TransformBufferArrC(TransformBufferArr);
   TArray<FVector> VelocityBufferArrC(VelocityBufferArr);
 
-  if (TransformBufferArr.Num() <= 0 || VelocityBufferArr.Num() <= 0) return;
+  if (TransformBufferArr.Num() <= 0 || VelocityBufferArr.Num() <= 0) return false;
 
   FTransform CurTransform = TransformBufferArrC[CurTimeIndex];
-  for (int i = 0; i < (TransformBufferArrC.Num() - 1) - CurTimeIndex; i++) {
+
+  for (int32 i = 0; i < (TransformBufferArrC.Num() - 1) - CurTimeIndex; i++) {
     for (int32 Index = TransformBufferArrC.Num() - 1; Index > 0; Index--) {
+      if (!ensure(Index < TransformBufferArrC.Num() - 1) || ensure(Index - 1 < 0)) return false;
       TransformBufferArrC[Index] = TransformBufferArrC[Index - 1];
     }
+    if (ensure(TransformBufferArrC.Num() - 1 < 0)) return false;
     TransformBufferArrC[0] = TransformBufferArrC[TransformBufferArrC.Num() - 1];
   }
   FVector CurVelocity = VelocityBufferArrC[CurTimeIndex];
-  for (int i = 0; i < (TransformBufferArrC.Num() - 1) - CurTimeIndex; i++) {
+  for (int32 i = 0; i < (TransformBufferArrC.Num() - 1) - CurTimeIndex; i++) {
     for (int32 Index = VelocityBufferArrC.Num() - 1; Index > 0; Index--) {
+      if (!ensure(Index < VelocityBufferArrC.Num() - 1) || ensure(Index - 1 < 0)) return false;
       VelocityBufferArrC[Index] = VelocityBufferArrC[Index - 1];
     }
+    if (ensure(VelocityBufferArrC.Num() - 1 < 0)) return false;
     VelocityBufferArrC[0] = VelocityBufferArrC[VelocityBufferArrC.Num() - 1];
   }
   int32 TIndex = TransformsArr.Add(TransformBufferArrC);
@@ -309,6 +314,7 @@ void AProjectCharacter::SaveCurValues()
   }
   FRewindInformation Info(TransformBufferArrC, VelocityBufferArrC);
   InfoArr.Add(Info);
+  return true;
 
 }
 
@@ -348,26 +354,29 @@ void AProjectCharacter::MoveRight(float Value) {
 void AProjectCharacter::OnHealthChanged(float Health, float MaxHealth, bool FullHealth, float PreviousHealth, AActor* EffectInstigator) {
   if (bIsDead)
     return;
-  LastDamagedBy = EffectInstigator;
   BP_OnHealthChanged(Health, MaxHealth, FullHealth, PreviousHealth, EffectInstigator);
 
-  if (Health < PreviousHealth) {
-    if (HasAuthority()) {
-      if (EffectInstigator) {
-        UActorComponent* Comp = EffectInstigator->GetComponentByClass(DICClass);
-        UE_LOG(LogTemp, Warning, TEXT("FIrst"));
-        if (Comp) {
+  if (bShowDamageIndicatorOnHit) {
+    if (Health < PreviousHealth) {
+      if (HasAuthority()) {
+        if (EffectInstigator) {
+          UE_LOG(LogTemp, Warning, TEXT("Effect Instigator is: %s"), *EffectInstigator -> GetName());
+          UActorComponent* Comp = EffectInstigator->GetComponentByClass(DICClass);
           UE_LOG(LogTemp, Warning, TEXT("FIrst"));
-          UDamageIndicatorComponent* DIComp = Cast<UDamageIndicatorComponent>(Comp);
-          if (DIComp) {
-            UE_LOG(LogTemp, Warning, TEXT("Second"));
-            DIComp->AddDamageIndicatorText_CLIENT(FText::FromString(FString::FromInt(FMath::FloorToInt(PreviousHealth - Health))), GetActorLocation());
+          if (Comp) {
+            UE_LOG(LogTemp, Warning, TEXT("FIrst"));
+            UDamageIndicatorComponent* DIComp = Cast<UDamageIndicatorComponent>(Comp);
+            if (DIComp) {
+              UE_LOG(LogTemp, Warning, TEXT("Second"));
+              DIComp->AddDamageIndicatorText_CLIENT(FText::FromString(FString::FromInt(FMath::FloorToInt(PreviousHealth - Health))), GetActorLocation());
+            }
           }
+          LastDamagedBy = EffectInstigator;
         }
       }
     }
   }
-  if (Health <= 0.f) {
+  if (Health <= 0.f && PreviousHealth != Health) {
     bIsDead = true;
     BP_OnDeath();
   }

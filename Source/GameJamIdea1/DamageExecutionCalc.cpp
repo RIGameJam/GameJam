@@ -71,6 +71,12 @@ void UDamageExecutionCalc::Execute_Implementation(const FGameplayEffectCustomExe
   // if (AssetTags.HasTagExact(FGameplayTag::RequestGameplayTag(FName("effect.damage.canheadshot")))) {
   //   UE_LOG(LogTemp, Warning, TEXT("can headshot"));
   // }
+  AActor* OrigInst = Spec.GetContext().GetOriginalInstigator();
+  AActor* Inst = Spec.GetContext().GetInstigator();
+  if (OrigInst) UE_LOG(LogTemp, Warning, TEXT("Orig inst: %s"), *OrigInst -> GetName());
+  if (Inst) UE_LOG(LogTemp, Warning, TEXT("Inst: %s"), *Inst -> GetName());
+
+  UE_LOG(LogTemp, Warning, TEXT("None"));
 
   // Hit && Hit->BoneName == HeadBoneName
   if (AssetTags.HasTagExact(FGameplayTag::RequestGameplayTag(FName("effect.damage.canheadshot"))) && AssetTags.HasTagExact(FGameplayTag::RequestGameplayTag(FName("effect.damage.headshot")))) {

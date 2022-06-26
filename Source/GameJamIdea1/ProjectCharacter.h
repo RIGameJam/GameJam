@@ -114,7 +114,7 @@ public:
 	void CheckTime();
 
 	UFUNCTION(BlueprintCallable)
-	void SaveCurValues();
+	bool SaveCurValues();
 
 
 	TArray<TArray<FTransform>> TransformsArr;
@@ -149,6 +149,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	bool bRecordSelf = false;
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bShowDamageIndicatorOnHit = true;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UAbilitySystemComponent *SystemComp = nullptr;

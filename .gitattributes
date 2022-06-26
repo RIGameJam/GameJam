@@ -1,1 +1,5 @@
 Content/ParagonWraith/**/* filter=lfs diff=lfs merge=lfs -text
+Content/Meshes/RockPackProV1/**/* filter=lfs diff=lfs merge=lfs -text
+Content/Meshes/GrassPack/**/* filter=lfs diff=lfs merge=lfs -text
+Content/Meshes/IndustryPropsPack4/**/* filter=lfs diff=lfs merge=lfs -text
+Content/Megascans/**/* filter=lfs diff=lfs merge=lfs -text
